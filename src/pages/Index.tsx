@@ -10,8 +10,8 @@ import { games } from "@/data/games";
 
 const Index: React.FC = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [isAutoScrolling, setIsAutoScrolling] = useState(true);
   const [scrollDirection, setScrollDirection] = useState(1); // 1 for right, -1 for left
+  const [isPaused, setIsPaused] = useState(false);
 
   const scrollLeft = () => {
     if (scrollContainerRef.current) {
@@ -31,14 +31,17 @@ const Index: React.FC = () => {
 
   // Auto-scrolling logic
   useEffect(() => {
-    if (!isAutoScrolling || !scrollContainerRef.current) return;
+    if (!scrollContainerRef.current) return;
     
     const container = scrollContainerRef.current;
     let animationFrameId: number;
-    let scrollSpeed = 0.5; // pixels per frame
+    const scrollSpeed = 0.5; // pixels per frame
     
     const autoScroll = () => {
-      if (!container) return;
+      if (!container || isPaused) {
+        animationFrameId = requestAnimationFrame(autoScroll);
+        return;
+      }
       
       // Check if we've reached the end and need to change direction
       if (scrollDirection > 0 && 
@@ -55,22 +58,22 @@ const Index: React.FC = () => {
     animationFrameId = requestAnimationFrame(autoScroll);
     
     // Pause auto-scrolling when user interacts with the container
-    const handleInteraction = () => setIsAutoScrolling(false);
-    const resumeAutoScroll = () => setIsAutoScrolling(true);
+    const handleInteractionStart = () => setIsPaused(true);
+    const handleInteractionEnd = () => setIsPaused(false);
     
-    container.addEventListener('mouseenter', handleInteraction);
-    container.addEventListener('touchstart', handleInteraction);
-    container.addEventListener('mouseleave', resumeAutoScroll);
-    container.addEventListener('touchend', resumeAutoScroll);
+    container.addEventListener('mouseenter', handleInteractionStart);
+    container.addEventListener('touchstart', handleInteractionStart);
+    container.addEventListener('mouseleave', handleInteractionEnd);
+    container.addEventListener('touchend', handleInteractionEnd);
     
     return () => {
       cancelAnimationFrame(animationFrameId);
-      container.removeEventListener('mouseenter', handleInteraction);
-      container.removeEventListener('touchstart', handleInteraction);
-      container.removeEventListener('mouseleave', resumeAutoScroll);
-      container.removeEventListener('touchend', resumeAutoScroll);
+      container.removeEventListener('mouseenter', handleInteractionStart);
+      container.removeEventListener('touchstart', handleInteractionStart);
+      container.removeEventListener('mouseleave', handleInteractionEnd);
+      container.removeEventListener('touchend', handleInteractionEnd);
     };
-  }, [isAutoScrolling, scrollDirection]);
+  }, [scrollDirection, isPaused]);
 
   const featuredGame = games[0]; // Using the first game as featured
 
@@ -166,7 +169,9 @@ const Index: React.FC = () => {
                 <Button 
                   onClick={() => {
                     scrollLeft();
-                    setIsAutoScrolling(false);
+                    setIsPaused(true);
+                    // Resume auto-scrolling after a delay
+                    setTimeout(() => setIsPaused(false), 1000);
                   }} 
                   variant="outline" 
                   size="icon"
@@ -177,21 +182,15 @@ const Index: React.FC = () => {
                 <Button 
                   onClick={() => {
                     scrollRight();
-                    setIsAutoScrolling(false);
+                    setIsPaused(true);
+                    // Resume auto-scrolling after a delay
+                    setTimeout(() => setIsPaused(false), 1000);
                   }} 
                   variant="outline" 
                   size="icon"
                   className="hidden md:flex"
                 >
                   <ArrowRight className="h-5 w-5" />
-                </Button>
-                <Button
-                  onClick={() => setIsAutoScrolling(!isAutoScrolling)}
-                  variant="outline"
-                  size="sm"
-                  className="hidden md:flex"
-                >
-                  {isAutoScrolling ? "Pause" : "Auto Scroll"}
                 </Button>
               </div>
             </div>
