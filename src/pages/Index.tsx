@@ -1,7 +1,7 @@
 
 import React, { useRef } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, ArrowRight, ChevronDown, Gamepad2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronDown, Gamepad2, Play, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import GameCard from "@/components/GameCard";
 import Navbar from "@/components/Navbar";
