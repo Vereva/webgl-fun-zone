@@ -1,76 +1,23 @@
 
-import React, { useRef, useEffect, useState } from "react";
+import React from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import GameCard from "@/components/GameCard";
 import { Game } from "@/types";
+import { useAutoScroll } from "@/hooks/useAutoScroll";
 
 interface GamesGallerySectionProps {
   games: Game[];
 }
 
 const GamesGallerySection: React.FC<GamesGallerySectionProps> = ({ games }) => {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [scrollDirection, setScrollDirection] = useState(1); // 1 for right, -1 for left
-  const [isPaused, setIsPaused] = useState(false);
-
-  const scrollLeft = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: -300, behavior: 'smooth' });
-    }
-  };
-
-  const scrollRight = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: 300, behavior: 'smooth' });
-    }
-  };
-
-  // Auto-scrolling logic
-  useEffect(() => {
-    if (!scrollContainerRef.current) return;
-    
-    const container = scrollContainerRef.current;
-    let animationFrameId: number;
-    const scrollSpeed = 0.5; // pixels per frame
-    
-    const autoScroll = () => {
-      if (!container || isPaused) {
-        animationFrameId = requestAnimationFrame(autoScroll);
-        return;
-      }
-      
-      // Check if we've reached the end and need to change direction
-      if (scrollDirection > 0 && 
-          container.scrollLeft >= container.scrollWidth - container.clientWidth - 5) {
-        setScrollDirection(-1);
-      } else if (scrollDirection < 0 && container.scrollLeft <= 5) {
-        setScrollDirection(1);
-      }
-      
-      container.scrollLeft += scrollSpeed * scrollDirection;
-      animationFrameId = requestAnimationFrame(autoScroll);
-    };
-    
-    animationFrameId = requestAnimationFrame(autoScroll);
-    
-    // Pause auto-scrolling when user interacts with the container
-    const handleInteractionStart = () => setIsPaused(true);
-    const handleInteractionEnd = () => setIsPaused(false);
-    
-    container.addEventListener('mouseenter', handleInteractionStart);
-    container.addEventListener('touchstart', handleInteractionStart);
-    container.addEventListener('mouseleave', handleInteractionEnd);
-    container.addEventListener('touchend', handleInteractionEnd);
-    
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      container.removeEventListener('mouseenter', handleInteractionStart);
-      container.removeEventListener('touchstart', handleInteractionStart);
-      container.removeEventListener('mouseleave', handleInteractionEnd);
-      container.removeEventListener('touchend', handleInteractionEnd);
-    };
-  }, [scrollDirection, isPaused]);
+  const {
+    scrollContainerRef,
+    isPaused,
+    setIsPaused,
+    scrollLeft,
+    scrollRight
+  } = useAutoScroll();
 
   return (
     <section id="games" className="py-16">
